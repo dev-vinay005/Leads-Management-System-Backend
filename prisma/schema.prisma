@@ -11,7 +11,7 @@ generator client {
 
 // Organization: Top-level tenant created by a platform admin.
 model Organization {
-    id               String            @id @default(cuid()) @map("_id") @db.ObjectId
+    id               String            @id @default(auto()) @map("_id") @db.ObjectId
     name             String            @unique
     createdById      String?           @map("_createdById") @db.ObjectId
     createdBy        User?             @relation("OrganizationsCreated", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -31,7 +31,7 @@ model Organization {
 
 // Company: Business unit under an organization. Company admins manage its employees and managers.
 model Company {
-    id               String            @id @default(cuid()) @map("_id") @db.ObjectId
+    id               String            @id @default(auto()) @map("_id") @db.ObjectId
     name             String
     organizationId   String            @map("_organizationId") @db.ObjectId
     organization     Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -55,7 +55,7 @@ model Company {
 
 // User: Platform admins can exist without an organization; organization and company users are scoped below.
 model User {
-    id                   String                   @id @default(cuid()) @map("_id") @db.ObjectId
+    id                   String                   @id @default(auto()) @map("_id") @db.ObjectId
     email                String                   @unique
     password             String // Hashed password
     name                 String?
@@ -81,7 +81,7 @@ model User {
 
 // Agent: Represents a conversational AI agent (e.g., Voice Assistant)
 model Agent {
-    id                   String                   @id @default(cuid()) @map("_id") @db.ObjectId
+    id                   String                   @id @default(auto()) @map("_id") @db.ObjectId
     name                 String
     typeId               String                   @map("_typeId") @db.ObjectId
     type                 AgentType                @relation(fields: [typeId], references: [id])
@@ -133,7 +133,7 @@ model AgentConfiguration {
 
 // PhoneNumber: Represents a phone number owned by an organization
 model PhoneNumber {
-    id              String            @id @default(cuid()) @map("_id") @db.ObjectId
+    id              String            @id @default(auto()) @map("_id") @db.ObjectId
     number          String            @unique
     countryCode     String?
     typeId          String            @map("_typeId") @db.ObjectId
@@ -156,7 +156,7 @@ model PhoneNumber {
 
 // Contact: Represents an individual contact for calls or messages
 model Contact {
-    id             String                   @id @default(cuid()) @map("_id") @db.ObjectId
+    id             String                   @id @default(auto()) @map("_id") @db.ObjectId
     organizationId String                   @map("_organizationId") @db.ObjectId
     companyId      String                   @map("_companyId") @db.ObjectId
     name           String?
@@ -175,7 +175,7 @@ model Contact {
 
 // ContactGroup: Represents a group of contacts for bulk operations
 model ContactGroup {
-    id             String                   @id @default(cuid()) @map("_id") @db.ObjectId
+    id             String                   @id @default(auto()) @map("_id") @db.ObjectId
     organizationId String                   @map("_organizationId") @db.ObjectId
     companyId      String                   @map("_companyId") @db.ObjectId
     name           String                   @unique
@@ -192,7 +192,7 @@ model ContactGroup {
 
 // ContactGroupMembership: Junction table for Contact-ContactGroup relationship
 model ContactGroupMembership {
-    id             String       @id @default(cuid()) @map("_id") @db.ObjectId
+    id             String       @id @default(auto()) @map("_id") @db.ObjectId
     contactId      String       @map("_contactId") @db.ObjectId
     contactGroupId String       @map("_contactGroupId") @db.ObjectId
     assignedAt     DateTime     @default(now())
@@ -204,7 +204,7 @@ model ContactGroupMembership {
 
 // Call: Represents a scheduled or initiated call instance
 model Call {
-    id                  String        @id @default(cuid()) @map("_id") @db.ObjectId
+    id                  String        @id @default(auto()) @map("_id") @db.ObjectId
     organizationId      String        @map("_organizationId") @db.ObjectId
     companyId           String        @map("_companyId") @db.ObjectId
     agentId             String        @map("_agentId") @db.ObjectId
@@ -269,7 +269,7 @@ model CallRecord {
 
 // Conversation: Tracks dialogue flow within a call
 model Conversation {
-    id        String             @id @default(cuid()) @map("_id") @db.ObjectId
+    id        String             @id @default(auto()) @map("_id") @db.ObjectId
     agentId   String             @map("_agentId") @db.ObjectId
     agent     Agent              @relation(fields: [agentId], references: [id], onDelete: Cascade)
     callId    String?            @unique @map("_callId") @db.ObjectId
@@ -360,7 +360,7 @@ model DataLibraryItem {
 
 // Project: Organizes agents and resources
 model Project {
-    id             String              @id @default(cuid()) @map("_id") @db.ObjectId
+    id             String              @id @default(auto()) @map("_id") @db.ObjectId
     name           String
     description    String?
     organizationId String              @map("_organizationId") @db.ObjectId
@@ -376,7 +376,7 @@ model Project {
 
 // ProjectAssignment: Junction table for Project-Agent relationship
 model ProjectAssignment {
-    id        String   @id @default(cuid()) @map("_id") @db.ObjectId
+    id        String   @id @default(auto()) @map("_id") @db.ObjectId
     projectId String   @map("_projectId") @db.ObjectId
     agentId   String   @map("_agentId") @db.ObjectId
     createdAt DateTime @default(now())
@@ -394,14 +394,14 @@ model AgentManagerAssignment {
     agent     Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
     user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-    id String @id @default(cuid()) @map("_id") @db.ObjectId
+    id String @id @default(auto()) @map("_id") @db.ObjectId
 
     @@unique([agentId, userId])
 }
 
 // Lookup tables replace enums so statuses, roles, and types can be managed as data.
 model Role {
-    id          String   @id @default(cuid()) @map("_id") @db.ObjectId
+    id          String   @id @default(auto()) @map("_id") @db.ObjectId
     name        String   @unique
     description String?
     createdAt   DateTime @default(now())
@@ -410,7 +410,7 @@ model Role {
 }
 
 model AgentType {
-    id          String   @id @default(cuid()) @map("_id") @db.ObjectId
+    id          String   @id @default(auto()) @map("_id") @db.ObjectId
     name        String   @unique
     description String?
     createdAt   DateTime @default(now())
@@ -419,7 +419,7 @@ model AgentType {
 }
 
 model AgentStatus {
-    id          String   @id @default(cuid()) @map("_id") @db.ObjectId
+    id          String   @id @default(auto()) @map("_id") @db.ObjectId
     name        String   @unique
     description String?
     createdAt   DateTime @default(now())
@@ -428,7 +428,7 @@ model AgentStatus {
 }
 
 model PhoneNumberType {
-    id           String        @id @default(cuid()) @map("_id") @db.ObjectId
+    id           String        @id @default(auto()) @map("_id") @db.ObjectId
     name         String        @unique
     description  String?
     createdAt    DateTime      @default(now())
@@ -437,7 +437,7 @@ model PhoneNumberType {
 }
 
 model PhoneNumberStatus {
-    id           String        @id @default(cuid()) @map("_id") @db.ObjectId
+    id           String        @id @default(auto()) @map("_id") @db.ObjectId
     name         String        @unique
     description  String?
     createdAt    DateTime      @default(now())
@@ -446,7 +446,7 @@ model PhoneNumberStatus {
 }
 
 model CallStatus {
-    id          String   @id @default(cuid()) @map("_id") @db.ObjectId
+    id          String   @id @default(auto()) @map("_id") @db.ObjectId
     name        String   @unique
     description String?
     createdAt   DateTime @default(now())
@@ -455,7 +455,7 @@ model CallStatus {
 }
 
 model CallType {
-    id          String   @id @default(cuid()) @map("_id") @db.ObjectId
+    id          String   @id @default(auto()) @map("_id") @db.ObjectId
     name        String   @unique
     description String?
     createdAt   DateTime @default(now())
@@ -464,7 +464,7 @@ model CallType {
 }
 
 model CallDisposition {
-    id          String       @id @default(cuid()) @map("_id") @db.ObjectId
+    id          String       @id @default(auto()) @map("_id") @db.ObjectId
     name        String       @unique
     description String?
     createdAt   DateTime     @default(now())
@@ -473,7 +473,7 @@ model CallDisposition {
 }
 
 model AnalysisStatus {
-    id          String       @id @default(cuid()) @map("_id") @db.ObjectId
+    id          String       @id @default(auto()) @map("_id") @db.ObjectId
     name        String       @unique
     description String?
     createdAt   DateTime     @default(now())
@@ -482,7 +482,7 @@ model AnalysisStatus {
 }
 
 model CallOutcome {
-    id          String       @id @default(cuid()) @map("_id") @db.ObjectId
+    id          String       @id @default(auto()) @map("_id") @db.ObjectId
     name        String       @unique
     description String?
     createdAt   DateTime     @default(now())
@@ -491,7 +491,7 @@ model CallOutcome {
 }
 
 model ChannelType {
-    id            String         @id @default(cuid()) @map("_id") @db.ObjectId
+    id            String         @id @default(auto()) @map("_id") @db.ObjectId
     name          String         @unique
     description   String?
     createdAt     DateTime       @default(now())
@@ -500,7 +500,7 @@ model ChannelType {
 }
 
 model ConversationStatus {
-    id            String         @id @default(cuid()) @map("_id") @db.ObjectId
+    id            String         @id @default(auto()) @map("_id") @db.ObjectId
     name          String         @unique
     description   String?
     createdAt     DateTime       @default(now())
@@ -509,7 +509,7 @@ model ConversationStatus {
 }
 
 model SenderType {
-    id          String    @id @default(cuid()) @map("_id") @db.ObjectId
+    id          String    @id @default(auto()) @map("_id") @db.ObjectId
     name        String    @unique
     description String?
     createdAt   DateTime  @default(now())
@@ -518,7 +518,7 @@ model SenderType {
 }
 
 model DeliveryStatus {
-    id          String    @id @default(cuid()) @map("_id") @db.ObjectId
+    id          String    @id @default(auto()) @map("_id") @db.ObjectId
     name        String    @unique
     description String?
     createdAt   DateTime  @default(now())
@@ -527,7 +527,7 @@ model DeliveryStatus {
 }
 
 model LeadStatus {
-    id          String   @id @default(cuid()) @map("_id") @db.ObjectId
+    id          String   @id @default(auto()) @map("_id") @db.ObjectId
     name        String   @unique
     description String?
     createdAt   DateTime @default(now())
@@ -536,7 +536,7 @@ model LeadStatus {
 }
 
 model DataLibraryType {
-    id          String            @id @default(cuid()) @map("_id") @db.ObjectId
+    id          String            @id @default(auto()) @map("_id") @db.ObjectId
     name        String            @unique
     description String?
     createdAt   DateTime          @default(now())
