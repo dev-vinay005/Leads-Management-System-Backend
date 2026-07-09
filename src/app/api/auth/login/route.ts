@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { findUserByEmail, createUser, storeOTP } from "@/lib/auth"
 import { sendOTP } from "@/lib/nodemailer"
 import crypto from "crypto"
+import { prisma } from "@/lib/prisma"
 
 export async function POST(req: NextRequest) {
     const { email } = await req.json();
@@ -13,7 +14,11 @@ export async function POST(req: NextRequest) {
     let user = await findUserByEmail(email);
 
     if (!user) {
-        user = await createUser(email, "ROLE_ID_HERE");
+        const userRole = await prisma.role.findUnique({ where: { name: "USER" } })
+        if (!userRole) {
+            return NextResponse.json({ error: "Default role not found " }, { status: 500 })
+        }
+        user = await createUser(email, userRole.id);
     }
 
     const otp = crypto.randomInt(100000, 999999).toString();
