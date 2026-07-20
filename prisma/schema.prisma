@@ -27,6 +27,7 @@ model Organization {
     contacts         Contact[]
     contactGroups    ContactGroup[]
     calls            Call[]
+    leadStatuses     LeadStatus[]
 }
 
 // Company: Business unit under an organization. Company admins manage its employees and managers.
@@ -74,6 +75,8 @@ model User {
     createdCalls         Call[]                   @relation("CreatedCalls")
     createdOrganizations Organization[]           @relation("OrganizationsCreated")
     createdCompanies     Company[]                @relation("CompaniesCreated")
+    leadsCreated         Lead[]                   @relation("LeadsCreated") // pairs with Lead.createdBy
+    leadsAssigned        Lead[]                   @relation("LeadsAssigned") // pairs with Lead.assignedTo
 
     @@index([email, organizationId, companyId])
     @@index([roleId])
@@ -235,7 +238,8 @@ model Call {
     conversation        Conversation?
     createdAt           DateTime      @default(now())
     updatedAt           DateTime      @updatedAt
-    generatedLead       Lead?
+    generatedLead       Lead?         @relation(fields: [leadId], references: [id])
+    leadId              String?
 
     @@index([organizationId, companyId, agentId, statusId, callTypeId])
 }
@@ -310,32 +314,55 @@ model Message {
     @@index([senderId, deliveryStatusId])
 }
 
-// Lead: Tracks potential customers
 model Lead {
-    id             String       @id @default(cuid()) @map("_id")
-    organizationId String       @map("_organizationId") @db.ObjectId
-    companyId      String       @map("_companyId") @db.ObjectId
-    agentId        String?      @map("_agentId") @db.ObjectId
+    id             String     @id @default(cuid()) @map("_id")
+    organizationId String     @map("_organizationId") @db.ObjectId
+    companyId      String     @map("_companyId") @db.ObjectId
+    agentId        String?    @map("_agentId") @db.ObjectId
     sourceChannel  String?
-    contactInfo    Json
-    statusId       String       @map("_statusId") @db.ObjectId
-    status         LeadStatus   @relation(fields: [statusId], references: [id])
+    statusId       String     @map("_statusId") @db.ObjectId
+    status         LeadStatus @relation(fields: [statusId], references: [id])
     notes          String?
-    createdAt      DateTime     @default(now())
-    updatedAt      DateTime     @updatedAt
-    organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-    company        Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
-    agent          Agent?       @relation(fields: [agentId], references: [id], onDelete: SetNull)
+    createdAt      DateTime   @default(now())
+    updatedAt      DateTime   @updatedAt
 
-    // This field stores the actual ID of the call that generated the lead.
-    // It is marked as @unique to ensure one call can only create one lead.
-    sourceCallId String? @unique @map("_sourceCallId") @db.ObjectId
+    organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+    company      Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+    agent        Agent?       @relation(fields: [agentId], references: [id], onDelete: SetNull)
 
-    // This is the Prisma relation field. It uses sourceCallId to let you easily
-    // access the full Call object in your code.
-    sourceCall Call? @relation(fields: [sourceCallId], references: [id], onDelete: SetNull)
+    createdById String? @map("_createdById") @db.ObjectId
+    createdBy   User?   @relation("LeadsCreated", fields: [createdById], references: [id], onDelete: SetNull)
+
+    assignedToId String? @map("_assignedToId") @db.ObjectId
+    assignedTo   User?   @relation("LeadsAssigned", fields: [assignedToId], references: [id], onDelete: SetNull)
+
+    information LeadInformation?
+
+    calls Call[]
 
     @@index([organizationId, companyId, statusId])
+    @@index([assignedToId])
+    @@index([createdById])
+}
+
+// LeadInformation: Stores the actual contact/profile details captured for a lead
+model LeadInformation {
+    id        String  @id @default(auto()) @map("_id") @db.ObjectId
+    leadId    String  @unique @map("_leadId") // matches Lead.id (cuid, not ObjectId — do NOT add @db.ObjectId here)
+    lead      Lead    @relation(fields: [leadId], references: [id], onDelete: Cascade)
+    firstName String
+    lastName  String?
+    email     String?
+    phone     String
+    company   String?
+    jobTitle  String?
+    address   String?
+
+    // Escape hatch for anything captured that doesn't fit a fixed column
+    customFields Json?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 }
 
 // DataLibraryItem: Stores reusable data or knowledge base entries
@@ -527,12 +554,20 @@ model DeliveryStatus {
 }
 
 model LeadStatus {
-    id          String   @id @default(auto()) @map("_id") @db.ObjectId
-    name        String   @unique
+    id String @id @default(auto()) @map("_id") @db.ObjectId
+
+    name        String
     description String?
-    createdAt   DateTime @default(now())
-    updatedAt   DateTime @updatedAt
-    leads       Lead[]
+
+    organizationId String       @db.ObjectId
+    organization   Organization @relation(fields: [organizationId], references: [id])
+
+    leads Lead[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@unique([organizationId, name])
 }
 
 model DataLibraryType {
