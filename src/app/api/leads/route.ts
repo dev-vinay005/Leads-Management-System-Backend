@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getSession } from "@/lib/auth";
 import { createLeadSchema } from "@/validation/leads.validation";
 import { getAuthenticatedUser } from "@/lib/getAuthenticatedUser";
 import { checkDuplicateLead } from "@/lib/leads/checkDuplicatedLead";
-import { promise, success } from "zod";
 
 export async function POST(req: NextRequest) {
   try {
@@ -169,45 +167,46 @@ export async function GET(req: NextRequest) {
     const where = {
       organizationId: user.organizationId,
       companyId: user.companyId,
-
-      ...(search && {
-        information: {
-          is: {
-            OR: [
-              {
-                firstName: {
-                  contains: search,
-                  mode: "insensitive" as const,
-                },
-              },
-              {
-                lastName: {
-                  contains: search,
-                  mode: "insensitive" as const,
-                },
-              },
-              {
-                phone: {
-                  contains: search,
-                },
-              },
-              {
-                email: {
-                  contains: search,
-                  mode: "insensitive" as const,
-                },
-              },
-              {
-                company: {
-                  contains: search,
-                  mode: "insensitive" as const,
-                },
-              },
-            ],
-          },
-        },
-      }),
+      assignedToId: user.id,
     };
+
+    if (search) {
+      where.information = {
+        is: {
+          OR: [
+            {
+              firstName: {
+                contains: search,
+                mode: "insensitive" as const,
+              },
+            },
+            {
+              lastName: {
+                contains: search,
+                mode: "insensitive" as const,
+              },
+            },
+            {
+              phone: {
+                contains: search,
+              },
+            },
+            {
+              email: {
+                contains: search,
+                mode: "insensitive" as const,
+              },
+            },
+            {
+              company: {
+                contains: search,
+                mode: "insensitive" as const,
+              },
+            },
+          ],
+        },
+      };
+    }
 
     const [totalLeads, leads] = await Promise.all([
       prisma.lead.count({
@@ -279,4 +278,18 @@ export async function GET(req: NextRequest) {
       { status: 500 },
     );
   }
+}
+
+export async function DELETE() {
+  const deleterec = await prisma.leadInformation.deleteMany();
+
+  return NextResponse.json(
+    {
+      success: true,
+      message: "Leads deleted successfully",
+    },
+    {
+      status: 200,
+    },
+  );
 }

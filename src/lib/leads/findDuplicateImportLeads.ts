@@ -23,7 +23,6 @@ export async function findDuplicateImportLeads({
 }: FindDuplicateImportLeadsParams): Promise<DuplicateCheckResult> {
   // Extract phones & emails from CSV
   const phones = validRows.map((row) => row.leadInfo.phone);
-
   const emails = validRows
     .map((row) => row.leadInfo.email)
     .filter((email): email is string => Boolean(email));

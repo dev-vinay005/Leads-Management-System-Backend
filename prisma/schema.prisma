@@ -11,44 +11,46 @@ generator client {
 
 // Organization: Top-level tenant created by a platform admin.
 model Organization {
-    id               String            @id @default(auto()) @map("_id") @db.ObjectId
-    name             String            @unique
-    createdById      String?           @map("_createdById") @db.ObjectId
-    createdBy        User?             @relation("OrganizationsCreated", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
-    createdAt        DateTime          @default(now())
-    updatedAt        DateTime          @updatedAt
-    companies        Company[]
-    users            User[]
-    agents           Agent[]
-    projects         Project[]
-    dataLibraryItems DataLibraryItem[]
-    leads            Lead[]
-    phoneNumbers     PhoneNumber[]
-    contacts         Contact[]
-    contactGroups    ContactGroup[]
-    calls            Call[]
-    leadStatuses     LeadStatus[]
+    id                     String                  @id @default(auto()) @map("_id") @db.ObjectId
+    name                   String                  @unique
+    createdById            String?                 @map("_createdById") @db.ObjectId
+    createdBy              User?                   @relation("OrganizationsCreated", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    createdAt              DateTime                @default(now())
+    updatedAt              DateTime                @updatedAt
+    companies              Company[]
+    users                  User[]
+    agents                 Agent[]
+    projects               Project[]
+    dataLibraryItems       DataLibraryItem[]
+    leads                  Lead[]
+    phoneNumbers           PhoneNumber[]
+    contacts               Contact[]
+    contactGroups          ContactGroup[]
+    calls                  Call[]
+    leadStatuses           LeadStatus[]
+    leadAssignmentRequests LeadAssignmentRequest[]
 }
 
 // Company: Business unit under an organization. Company admins manage its employees and managers.
 model Company {
-    id               String            @id @default(auto()) @map("_id") @db.ObjectId
-    name             String
-    organizationId   String            @map("_organizationId") @db.ObjectId
-    organization     Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-    createdById      String?           @map("_createdById") @db.ObjectId
-    createdBy        User?             @relation("CompaniesCreated", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
-    createdAt        DateTime          @default(now())
-    updatedAt        DateTime          @updatedAt
-    users            User[]
-    agents           Agent[]
-    projects         Project[]
-    dataLibraryItems DataLibraryItem[]
-    leads            Lead[]
-    phoneNumbers     PhoneNumber[]
-    contacts         Contact[]
-    contactGroups    ContactGroup[]
-    calls            Call[]
+    id                     String                  @id @default(auto()) @map("_id") @db.ObjectId
+    name                   String
+    organizationId         String                  @map("_organizationId") @db.ObjectId
+    organization           Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+    createdById            String?                 @map("_createdById") @db.ObjectId
+    createdBy              User?                   @relation("CompaniesCreated", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    createdAt              DateTime                @default(now())
+    updatedAt              DateTime                @updatedAt
+    users                  User[]
+    agents                 Agent[]
+    projects               Project[]
+    dataLibraryItems       DataLibraryItem[]
+    leads                  Lead[]
+    phoneNumbers           PhoneNumber[]
+    contacts               Contact[]
+    contactGroups          ContactGroup[]
+    calls                  Call[]
+    leadAssignmentRequests LeadAssignmentRequest[]
 
     @@unique([organizationId, name])
     @@index([organizationId])
@@ -56,27 +58,32 @@ model Company {
 
 // User: Platform admins can exist without an organization; organization and company users are scoped below.
 model User {
-    id                   String                   @id @default(auto()) @map("_id") @db.ObjectId
-    email                String                   @unique
-    password             String // Hashed password
-    name                 String?
-    roleId               String                   @map("_roleId") @db.ObjectId
-    role                 Role                     @relation(fields: [roleId], references: [id])
-    otp                  String? // For OTP storage
-    otpExpiry            DateTime? // OTP expiry
-    createdAt            DateTime                 @default(now())
-    updatedAt            DateTime                 @updatedAt
-    organization         Organization?            @relation(fields: [organizationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-    organizationId       String?                  @map("_organizationId") @db.ObjectId
-    company              Company?                 @relation(fields: [companyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-    companyId            String?                  @map("_companyId") @db.ObjectId
-    createdAgents        Agent[]                  @relation("CreatedAgents")
-    managedAgents        AgentManagerAssignment[]
-    createdCalls         Call[]                   @relation("CreatedCalls")
-    createdOrganizations Organization[]           @relation("OrganizationsCreated")
-    createdCompanies     Company[]                @relation("CompaniesCreated")
-    leadsCreated         Lead[]                   @relation("LeadsCreated") // pairs with Lead.createdBy
-    leadsAssigned        Lead[]                   @relation("LeadsAssigned") // pairs with Lead.assignedTo
+    id                    String                   @id @default(auto()) @map("_id") @db.ObjectId
+    email                 String                   @unique
+    password              String // Hashed password
+    name                  String?
+    roleId                String                   @map("_roleId") @db.ObjectId
+    role                  Role                     @relation(fields: [roleId], references: [id])
+    otp                   String? // For OTP storage
+    otpExpiry             DateTime? // OTP expiry
+    createdAt             DateTime                 @default(now())
+    updatedAt             DateTime                 @updatedAt
+    organization          Organization?            @relation(fields: [organizationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    organizationId        String?                  @map("_organizationId") @db.ObjectId
+    company               Company?                 @relation(fields: [companyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    companyId             String?                  @map("_companyId") @db.ObjectId
+    createdAgents         Agent[]                  @relation("CreatedAgents")
+    managedAgents         AgentManagerAssignment[]
+    createdCalls          Call[]                   @relation("CreatedCalls")
+    createdOrganizations  Organization[]           @relation("OrganizationsCreated")
+    createdCompanies      Company[]                @relation("CompaniesCreated")
+    leadsCreated          Lead[]                   @relation("LeadsCreated") // pairs with Lead.createdBy
+    leadsAssigned         Lead[]                   @relation("LeadsAssigned") // pairs with Lead.assignedTo
+    receivedNotifications Notification[]           @relation("ReceivedNotifications")
+    sentNotifications     Notification[]           @relation("SentNotifications")
+    sentTransferRequests  LeadAssignmentRequest[]  @relation("TransferRequestsSent")
+
+    receivedTransferRequests LeadAssignmentRequest[] @relation("TransferRequestsReceived")
 
     @@index([email, organizationId, companyId])
     @@index([roleId])
@@ -333,12 +340,10 @@ model Lead {
     createdById String? @map("_createdById") @db.ObjectId
     createdBy   User?   @relation("LeadsCreated", fields: [createdById], references: [id], onDelete: SetNull)
 
-    assignedToId String? @map("_assignedToId") @db.ObjectId
-    assignedTo   User?   @relation("LeadsAssigned", fields: [assignedToId], references: [id], onDelete: SetNull)
-
-    information LeadInformation?
-
-    calls Call[]
+    assignedToId String?          @map("_assignedToId") @db.ObjectId
+    assignedTo   User?            @relation("LeadsAssigned", fields: [assignedToId], references: [id], onDelete: SetNull)
+    information  LeadInformation?
+    calls        Call[]
 
     @@index([organizationId, companyId, statusId])
     @@index([assignedToId])
@@ -347,22 +352,104 @@ model Lead {
 
 // LeadInformation: Stores the actual contact/profile details captured for a lead
 model LeadInformation {
-    id        String  @id @default(auto()) @map("_id") @db.ObjectId
-    leadId    String  @unique @map("_leadId") // matches Lead.id (cuid, not ObjectId — do NOT add @db.ObjectId here)
-    lead      Lead    @relation(fields: [leadId], references: [id], onDelete: Cascade)
-    firstName String
-    lastName  String?
-    email     String?
-    phone     String
-    company   String?
-    jobTitle  String?
-    address   String?
-
+    id           String   @id @default(auto()) @map("_id") @db.ObjectId
+    leadId       String   @unique @map("_leadId") // matches Lead.id (cuid, not ObjectId — do NOT add @db.ObjectId here)
+    lead         Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+    firstName    String
+    lastName     String?
+    email        String?
+    phone        String
+    company      String?
+    jobTitle     String?
+    address      String
     // Escape hatch for anything captured that doesn't fit a fixed column
     customFields Json?
+    createdAt    DateTime @default(now())
+    updatedAt    DateTime @updatedAt
+}
+
+// this is for LeadAssignment Request
+enum AssignmentRequestStatus {
+    PENDING
+    ACCEPTED
+    REJECTED
+    CANCELLED
+}
+
+model LeadAssignmentRequest {
+    id String @id @default(auto()) @map("_id") @db.ObjectId
+
+    // Multi Tenant
+    organizationId String @map("_organizationId") @db.ObjectId
+    companyId      String @map("_companyId") @db.ObjectId
+
+    organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+    company      Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+    // Sender
+    fromUserId String @map("_fromUserId") @db.ObjectId
+    fromUser   User   @relation("TransferRequestsSent", fields: [fromUserId], references: [id], onDelete: Cascade)
+
+    // Receiver
+    toUserId String @map("_toUserId") @db.ObjectId
+    toUser   User   @relation("TransferRequestsReceived", fields: [toUserId], references: [id], onDelete: Cascade)
+
+    // Supports both single and bulk transfer
+    leadIds String[]
+
+    status          AssignmentRequestStatus @default(PENDING)
+    message         String?
+    rejectionReason String?
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+
+    @@index([toUserId, status])
+    @@index([fromUserId])
+    @@index([organizationId, companyId])
+    @@index([status])
+    @@index([createdAt])
+}
+
+// this is for notification
+model Notification {
+    id String @id @default(auto()) @map("_id") @db.ObjectId
+
+    receiverId String @db.ObjectId
+    receiver   User   @relation("ReceivedNotifications", fields: [receiverId], references: [id], onDelete: Cascade)
+
+    senderId String? @db.ObjectId
+    sender   User?   @relation("SentNotifications", fields: [senderId], references: [id], onDelete: SetNull)
+
+    title      String
+    entityType NotificationEntityType?
+    entityId   String?
+    message    String
+
+    type NotificationType
+
+    isRead Boolean @default(false)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([receiverId, isRead])
+    @@index([createdAt])
+}
+
+enum NotificationType {
+    LEAD_ASSIGNED
+    LEAD_UPDATED
+    LEAD_STATUS_CHANGED
+    TRANSFER_REQUEST_SEND
+    TRANSFER_REQUEST_RECEIVED
+    TRANSFER_REQUEST_ACCEPTED
+    TRANSFER_REQUEST_REJECTED
+}
+
+enum NotificationEntityType {
+    LEAD
+    ASSIGNMENT_REQUEST
 }
 
 // DataLibraryItem: Stores reusable data or knowledge base entries

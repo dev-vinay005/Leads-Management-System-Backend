@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedUser } from "@/lib/getAuthenticatedUser";
-import { use } from "react";
 
 // This route is for assign lead to any other user
 interface RouteParams {
@@ -45,6 +44,16 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
         id,
         organizationId: user.organizationId,
         companyId: user.companyId,
+      },
+      include: {
+        information: {
+          select: {
+            id: true,
+            leadId: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
       },
     });
 
@@ -103,6 +112,19 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
             email: true,
           },
         },
+      },
+    });
+
+    console.log(lead);
+
+    const createNotidication = await prisma.notification.create({
+      data: {
+        senderId: user.id,
+        receiverId: assignedToId,
+        title: "New lead Assigned",
+        message: `Lead "${lead.information?.firstName} ${lead.information?.lastName}" has been assigned to you by ${user.name}.`,
+        type: "LEAD_ASSIGNED",
+        entityId: lead.id,
       },
     });
 
