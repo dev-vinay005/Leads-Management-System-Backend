@@ -8,7 +8,6 @@ This repository provides the API layer and database models for managing:
 
 - Users and authentication
 - Organizations and companies
-- Agents and call flows
 - Lead records and lead statuses
 - Lead transfer and assignment requests
 - Notifications and messaging workflows
